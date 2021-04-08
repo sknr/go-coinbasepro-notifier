@@ -3,10 +3,10 @@ package client
 import (
 	"fmt"
 	ws "github.com/gorilla/websocket"
-	. "github.com/sknr/go-coinbasepro-notifier/internal"
-	"github.com/sknr/go-coinbasepro-notifier/internal/database"
-	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
-	"github.com/sknr/go-coinbasepro-notifier/internal/telegram"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/telegram"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/utils"
 	"net/http"
 	"os"
 	"os/signal"
@@ -140,12 +140,12 @@ func (c *CoinbaseProClient) Subscribe(conn *ws.Conn, messageChannel []coinbasepr
 	}
 
 	subscribeMessageSigned, err = subscribeMessage.Sign(c.Secret, c.Key, c.Passphrase)
-	if HasError(err) {
+	if utils.HasError(err) {
 		return err
 	}
 
 	err = conn.WriteJSON(subscribeMessageSigned)
-	if HasError(err) {
+	if utils.HasError(err) {
 		return err
 	}
 
@@ -154,7 +154,7 @@ func (c *CoinbaseProClient) Subscribe(conn *ws.Conn, messageChannel []coinbasepr
 		var message coinbasepro.Message
 		for {
 			err = conn.ReadJSON(&message)
-			if HasError(err) {
+			if utils.HasError(err) {
 				// Send an error through the channel in order to automatically reconnect
 				c.channel.error <- err
 				return
@@ -180,7 +180,7 @@ func (c *CoinbaseProClient) Watch(messageChannel []coinbasepro.MessageChannel) {
 
 	// Create new WebSocket connection
 	wsConn, _, err := dialer.Dial(webSocketURL, nil)
-	if HasError(err) {
+	if utils.HasError(err) {
 		logger.LogError(err)
 		return
 	}
@@ -216,7 +216,7 @@ func (c *CoinbaseProClient) Watch(messageChannel []coinbasepro.MessageChannel) {
 			logger.LogError(wsErr)
 			if c.retries == webSocketRetryCount {
 				logger.LogWarn("Max websocket connection retries reached! -> Stopping client")
-				telegram.SendAdminPushMessage(fmt.Sprintf("Max websocket connection retries reached!\nStopping client with ID %s. Manual intervention required for restart",c.userSettings.TelegramID))
+				telegram.SendAdminPushMessage(fmt.Sprintf("Max websocket connection retries reached!\nStopping client with ID %s. Manual intervention required for restart", c.userSettings.TelegramID))
 				return
 			}
 			time.Sleep(time.Second * (1 << c.retries))
@@ -269,16 +269,16 @@ func (c *CoinbaseProClient) handleWebSocketMessage(message coinbasepro.Message) 
 // handleTickerMessage converts a coinbasepro.Message into a TradeTicker
 func (c *CoinbaseProClient) handleTickerMessage(message coinbasepro.Message) {
 	var ask, bid decimal.Decimal
-	ask = StringToDecimal(message.BestAsk)
-	bid = StringToDecimal(message.BestBid)
+	ask = utils.StringToDecimal(message.BestAsk)
+	bid = utils.StringToDecimal(message.BestBid)
 
 	ticker := TradeTicker{
 		TradeID:   message.TradeID,
 		ProductID: message.ProductID,
 		Time:      message.Time.Time(),
 		Side:      message.Side,
-		Price:     StringToDecimal(message.Price),
-		Size:      StringToDecimal(message.LastSize),
+		Price:     utils.StringToDecimal(message.Price),
+		Size:      utils.StringToDecimal(message.LastSize),
 		Ask:       ask,
 		Bid:       bid,
 		Spread:    ask.Sub(bid),
@@ -319,7 +319,7 @@ func (c *CoinbaseProClient) handleOrderMessage(message coinbasepro.Message) {
 // GetAllAvailableProductIDs returns all available product ids from Coinbase Pro
 func (c *CoinbaseProClient) GetAllAvailableProductIDs() ([]string, error) {
 	products, err := c.GetProducts()
-	if HasError(err) {
+	if utils.HasError(err) {
 		logger.LogError(err)
 		return nil, err
 	}

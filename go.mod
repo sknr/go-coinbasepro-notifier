@@ -16,6 +16,7 @@ require (
 	github.com/yanzay/tbot/v2 v2.2.0
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.3
+	honnef.co/go/tools v0.1.3 // indirect
 )
 
 replace github.com/yanzay/tbot/v2 => github.com/sknr/tbot/v2 v2.2.1-0.20210322202531-c00af010167e

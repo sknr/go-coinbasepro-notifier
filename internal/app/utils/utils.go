@@ -1,10 +1,10 @@
-package internal
+package utils
 
 import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
-	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
 	"os"
 )
 
@@ -12,7 +12,6 @@ import (
 func HasError(err error) bool {
 	return err != nil
 }
-
 
 // PanicOnError checks panics if an error exists and does nothing otherwise
 func PanicOnError(err error) {
@@ -43,7 +42,7 @@ func CheckEnvVars(envVars ...string) {
 	}
 
 	for _, ev := range envVars {
-		if _, ok := os.LookupEnv(ev); ok == false {
+		if _, ok := os.LookupEnv(ev); !ok {
 			panic(fmt.Sprintf("Required env var %s is missing", ev))
 		}
 	}

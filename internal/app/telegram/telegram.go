@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"fmt"
-	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
 	"github.com/yanzay/tbot/v2"
 	"os"
 )

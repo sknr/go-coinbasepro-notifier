@@ -8,7 +8,7 @@ RUN apk add build-base
 # Copy all files from the current directory to the app directory
 COPY . /app
 # Set working directory
-WORKDIR /app/cmd
+WORKDIR /app/cmd/server
 # Build the go app
 RUN --mount=type=cache,target=/root/.cache/go-build \
     go build -v -o /app/build/server server.go

@@ -2,12 +2,14 @@ package main
 
 import (
 	"github.com/preichenberger/go-coinbasepro/v2"
-	"github.com/sknr/go-coinbasepro-notifier/internal/client"
-	"github.com/sknr/go-coinbasepro-notifier/internal/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/client"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/utils"
 	"os"
 )
 
 func main() {
+	utils.CheckEnvVars("COINBASE_PRO_KEY", "COINBASE_PRO_PASSPHRASE", "COINBASE_PRO_SECRET", "TELEGRAM_CHAT_ID")
 	// See https://docs.pro.coinbase.com/#subscribe for more details
 	channels := []coinbasepro.MessageChannel{
 		{

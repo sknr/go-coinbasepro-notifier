@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
 	"time"
 )
 
@@ -45,7 +45,7 @@ func (om OrderMessage) String() string {
 				message = fmt.Sprintf("Order was partially filled!\nTime: %s\nSide: %s\nOrderID: %s\nOrderType: %s\nProductID: %s\nRemaining Size: %s\nPrice: %s", om.Time.Format(time.RFC822), om.Side, om.OrderID, om.OrderType, om.ProductID, om.RemainingSize, om.Price)
 			}
 		case OrderReasonCanceled:
-			message = fmt.Sprintf("Order was canceled!\nTime: %s\nSide: %s\nOrderID: %s\nProductID: %s\nSize: %s\nPrice: %s", om.Time.Format(time.RFC822),om.Side, om.OrderID, om.ProductID, om.RemainingSize, om.Price)
+			message = fmt.Sprintf("Order was canceled!\nTime: %s\nSide: %s\nOrderID: %s\nProductID: %s\nSize: %s\nPrice: %s", om.Time.Format(time.RFC822), om.Side, om.OrderID, om.ProductID, om.RemainingSize, om.Price)
 		default:
 			logger.LogInfo("Unknown reason: %s", om.Reason)
 		}

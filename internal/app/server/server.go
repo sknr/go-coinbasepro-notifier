@@ -11,11 +11,11 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/preichenberger/go-coinbasepro/v2"
-	. "github.com/sknr/go-coinbasepro-notifier/internal"
-	"github.com/sknr/go-coinbasepro-notifier/internal/client"
-	"github.com/sknr/go-coinbasepro-notifier/internal/database"
-	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
-	"github.com/sknr/go-coinbasepro-notifier/internal/telegram"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/client"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/telegram"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/utils"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"html/template"
@@ -69,7 +69,7 @@ func initialize() {
 	gob.Register(TelegramUser{})
 
 	// Set the telegram token
-	CheckEnvVars("TELEGRAM_TOKEN", "DATABASE_FILE")
+	utils.CheckEnvVars("TELEGRAM_TOKEN", "DATABASE_FILE")
 	telegramToken = os.Getenv("TELEGRAM_TOKEN")
 
 	// Create clients map
@@ -115,8 +115,7 @@ func Start() {
 	fileServer := http.FileServer(http.Dir("./static"))
 	router.PathPrefix("/").Handler(http.StripPrefix("/", fileServer))
 
-	var termChan chan os.Signal // Channel for terminating the app via os.Interrupt signal
-	termChan = make(chan os.Signal, 1)
+	termChan := make(chan os.Signal, 1) // Channel for terminating the app via os.Interrupt signal
 	// Capture the interrupt signal for app termination handling
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -142,9 +141,9 @@ func initializeExistingClients() {
 
 	var err error
 	productIDs, err = cbp.GetAllAvailableProductIDs()
-	if HasError(err) {
+	if utils.HasError(err) {
 		logger.LogError(err)
-		panic("Cannot retrieve current list of product ids from Coinbase Pro. %s",)
+		panic("Cannot retrieve current list of product ids from Coinbase Pro. %s")
 	}
 	logger.LogInfof("ProductIDs: %s", strings.Join(productIDs, ","))
 
@@ -209,8 +208,6 @@ func createOrUpdateUser(user TelegramUser) {
 	db.Save(&settings)
 }
 
-
-
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	t, _ := template.ParseFiles("static/" + tmpl + ".html")
 	logger.LogErrorIfExists(t.Execute(w, data))
@@ -238,7 +235,6 @@ func getTotalNumberOfActiveUsers() int {
 /************/
 /* Handlers */
 /************/
-
 
 // loginHandler handles the login via telegram login widget
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -289,7 +285,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-
 // logoutHandler handles the user logout
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Remove the session
@@ -322,7 +317,8 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 // settingsHandler receives the html form post values and updates the user settings
 func settingsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		fmt.Fprintf(w, "ParseForm() err: %v", err)
+		logger.LogError(err)
+		renderTemplate(w, "error", struct{ ErrorMessage string }{"Could not parse form"})
 		return
 	}
 
@@ -343,7 +339,6 @@ func settingsHandler(w http.ResponseWriter, r *http.Request) {
 	userSettings.APIKey = r.FormValue("key")
 	userSettings.APIPassphrase = r.FormValue("passphrase")
 	userSettings.APISecret = r.FormValue("secret")
-	//userSettings.ProductIDs = r.FormValue("product_ids")
 	db.Save(&userSettings)
 
 	if clients[user.ID] != nil {
