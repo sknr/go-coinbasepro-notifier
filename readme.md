@@ -9,6 +9,7 @@ Here's an example of how the app works:
 1. The Telegram-Bot: https://t.me/CoinbaseProNotifierBot
 2. The Webserver: https://notifier.bot.apperia.de
 
+> HINT: If you don't already have an Telegram bot, have a look at https://core.telegram.org/bots.
 ---
 
 ### Setup Coinbase Pro API-Key
