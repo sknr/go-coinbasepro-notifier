@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coinbase Pro Notifier</title>
+    <!-- Compressed CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css"
+          integrity="sha256-ogmFxjqiTMnZhxCqVmcqTvjfe1Y/ec4WaRj/aQPvn+I=" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<main class="grid-container fluid">
+    <div class="grid-y">
+        <div class="large-3 cell" style="height:50px;"></div>
+        <div class="large-6 cell">
+            <section class="grid-x grid-margin-x grid-padding-y">
+                <div class="auto cell"></div>
+                <div class="large-6 medium-8 small-10 cell content">
+                    <div class="card">
+                        <div class="card-section">
+                            <div class="grid-x">
+                                <div class="auto cell"></div>
+                                <div class="small-6 cell">
+                                    <img class="logo" src="assets/logo-small.png">
+                                </div>
+                                <div class="auto cell"></div>
+                            </div>
+                            <h2>Coinbase Pro Notifier</h2>
+                        </div>
+                        <div class="card-section">
+                            <p>In order to use the <a href="https://telegram.me/CoinbaseProNotifierBot">@CoinbaseProNotifierBot</a>
+                                Telegram-Bot, please click the login button below to configure your Coinbase Pro
+                                notification settings.
+                            </p>
+                        </div>
+                        <div>
+                            <script async src="https://telegram.org/js/telegram-widget.js?14"
+                                    data-telegram-login="CoinbaseProNotifierBot"
+                                    data-size="large" data-auth-url="https://notifier.bot.apperia.de/login"
+                                    data-request-access="write"></script>
+                        </div>
+                    </div>
+                </div>
+                <div class="auto cell"></div>
+            </section>
+        </div>
+    </div>
+</main>
+</body>
+</html>

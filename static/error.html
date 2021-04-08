@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <!-- Compressed CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css"
+          integrity="sha256-ogmFxjqiTMnZhxCqVmcqTvjfe1Y/ec4WaRj/aQPvn+I=" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+    <main class="grid-y">
+        <div class="large-3 cell" style="height:50px;"></div>
+        <div class="large-6 cell">
+            <section class="grid-x grid-margin-x grid-padding-y">
+                <div class="auto cell"></div>
+                <div class="large-6 medium-10 small-10 cell content">
+                    <div class="card padding" style="border-width: 5px;border-color: indianred;color: white;">
+                        <div class="card-section" style="font-size: 120px;">🤬</div>
+                        <div class="card-section" style="background-color: indianred;">{{.ErrorMessage}}</div>
+                        <div class="card-section"><a class="button success" href="/">Try again</a></div>
+                    </div>
+                </div>
+                <div class="auto cell"></div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
