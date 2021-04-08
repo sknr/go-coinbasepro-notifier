@@ -1,0 +1,33 @@
+body {
+    /*background-color: rgb(104, 168, 229);*/
+    background-color: rgb(0, 177, 234);
+}
+
+.content {
+    text-align: center;
+}
+
+.photo {
+    border-radius: 100%;
+    width: 150px;
+    height: 150px;
+}
+
+.card {
+    position: relative;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px 0 rgba(10, 10, 10, 0.6);
+}
+
+form {
+    text-align: left;
+}
+
+.close-button {
+    color: red;
+    font-size: 40px;
+}
+
+img.logo {
+    height: 80px;
+}
