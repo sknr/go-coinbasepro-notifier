@@ -43,3 +43,4 @@ Example of API-Key creation with images:
 1. Customize the example `docker-compose.yml file to your needs.
 1. Run `docker-compose up -d` to start the service.
 
+> HINT: For a quick try, use the prebuild docker image from docker-hub: [coinbasepro-notifier](https://hub.docker.com/r/sknr/coinbasepro-notifier)
