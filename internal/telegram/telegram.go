@@ -35,6 +35,7 @@ func SendAdminPushMessage(message string) {
 // SendAdminPushMessageWhenPanic sends a push message on application panic
 func SendAdminPushMessageWhenPanic() {
 	if r := recover(); r != nil {
+		logger.LogWarnf("App panicked!\n%s", r)
 		SendAdminPushMessage(fmt.Sprintf("App panicked!\n%s", r))
 	}
 }
