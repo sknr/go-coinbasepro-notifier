@@ -233,6 +233,7 @@ func (c *CoinbaseProClient) Watch(messageChannel []coinbasepro.MessageChannel) {
 	}
 }
 
+// Close sends the empty struct in order to close the client
 func (c *CoinbaseProClient) Close() {
 	c.channel.close <- struct{}{}
 }

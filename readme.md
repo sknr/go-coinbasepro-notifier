@@ -1,3 +1,9 @@
+![Coinbase Pro Notifier](static/assets/logo-small.png)
+
+###### Get informed about Coinbase Pro order changes via Telegram
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/sknr/go-coinbasepro-notifier)](https://goreportcard.com/report/github.com/sknr/go-coinbasepro-notifier)
+
 # Coinbase Pro Notifier
 
 The intention of this app is to inform the Coinbase Pro user about order changes via telegram messages. Therefore, the

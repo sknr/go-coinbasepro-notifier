@@ -216,7 +216,6 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 // getUser returns a user from session s. on error returns an empty user
 func getUser(s *sessions.Session) TelegramUser {
 	val := s.Values["user"]
-	var user = TelegramUser{}
 	user, ok := val.(TelegramUser)
 	if !ok {
 		return TelegramUser{IsAuthenticated: false}

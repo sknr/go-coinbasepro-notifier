@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// Send a telegram message to the user with given chatID
+// SendPushMessage sends a telegram message to the user with given chatID
 func SendPushMessage(chatID, message string) {
 	botToken := os.Getenv("TELEGRAM_TOKEN")
 	tc := tbot.New(botToken).Client()

@@ -38,12 +38,14 @@ type MovingAverage struct {
 	average decimal.Decimal
 }
 
+// Add adds a new value to the moving average
 func (ma *MovingAverage) Add(value decimal.Decimal) {
 	ma.sum = ma.sum.Add(value)
 	ma.n = ma.n.Add(decimal.NewFromInt(1))
 	ma.average = ma.sum.Div(ma.n)
 }
 
+// Get returns the current moving average
 func (ma *MovingAverage) Get() decimal.Decimal {
 	return ma.average
 }
@@ -59,6 +61,7 @@ type Spread struct {
 	Average      MovingAverage
 }
 
+// Set sets the current spread value
 func (s *Spread) Set(currentValue decimal.Decimal) {
 	var spread decimal.Decimal
 	if s.LastValue.GreaterThan(decimal.Zero) {
@@ -78,7 +81,7 @@ func (s *Spread) Set(currentValue decimal.Decimal) {
 	s.CurrentValue = currentValue
 }
 
-// Returns true if the current and the last value are different
+// HasChanged returns true if the current and the last value are different
 func (s *Spread) HasChanged() bool {
 	if s.CurrentValue.Equal(s.LastValue) {
 		return false
