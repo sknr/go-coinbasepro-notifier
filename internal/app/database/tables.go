@@ -15,4 +15,5 @@ type UserSettings struct {
 	APIKey        string
 	APIPassphrase string
 	APISecret     string
+	Active        bool
 }

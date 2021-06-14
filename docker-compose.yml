@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  app:
+    build: .
+    image: coinbasepro_notifier:latest
+    volumes:
+      - "./data:/app/data"
+    env_file:
+      - ".env"
+    restart: unless-stopped

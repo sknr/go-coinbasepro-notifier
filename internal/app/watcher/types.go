@@ -1,9 +1,37 @@
-package client
+package watcher
 
 import (
 	"fmt"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"time"
+)
+
+const (
+	// Coinbase Pro channel types
+	ChannelTypeFull      = "full"
+	ChannelTypeHeartbeat = "heartbeat"
+	ChannelTypeMatches   = "matches"
+	ChannelTypeStatus    = "status"
+	ChannelTypeTicker    = "ticker"
+	ChannelTypeUser      = "user"
+
+	// Coinbase Pro message types
+	MessageTypeActivate      = "activate"
+	MessageTypeChange        = "change"
+	MessageTypeDone          = "done"
+	MessageTypeError         = "error"
+	MessageTypeHeartbeat     = "heartbeat"
+	MessageTypeMatch         = "match"
+	MessageTypeOpen          = "open"
+	MessageTypeReceived      = "received"
+	MessageTypeStatus        = "status"
+	MessageTypeSubscriptions = "subscriptions"
+	MessageTypeSubscribe     = "subscribe"
+	MessageTypeTicker        = "ticker"
+
+	// Coinbase Pro order reasons
+	OrderReasonFilled   = "filled"
+	OrderReasonCanceled = "canceled"
 )
 
 type OrderMessage struct {

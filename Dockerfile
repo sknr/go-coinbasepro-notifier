@@ -2,16 +2,14 @@
 ############################
 # STEP 1 build executable binary
 ############################
-FROM golang:1.16-alpine3.12 AS builder
-# Install dependencies
-RUN apk add build-base
+FROM golang:1.17-alpine3.14 AS builder
 # Copy all files from the current directory to the app directory
 COPY . /app
 # Set working directory
-WORKDIR /app/cmd/server
+WORKDIR /app/cmd
 # Build the go app
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    go build -v -o /app/build/server server.go
+    CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /app/build/notifier notifier.go
 
 ############################
 # STEP 2 build a small image
@@ -21,9 +19,10 @@ FROM alpine:latest
 WORKDIR /app
 # Copy files into workdir
 COPY --from=builder /app/build/ ./
-COPY --from=builder /app/data/ ./data/
 COPY --from=builder /app/static/ ./static/
+# Create data directory
+RUN mkdir data
 # Expose webserver port
 EXPOSE 8080
 # Run the server executable
-ENTRYPOINT [ "/app/server" ]
+ENTRYPOINT [ "/app/notifier" ]

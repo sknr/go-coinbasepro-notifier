@@ -2,9 +2,10 @@ package telegram
 
 import (
 	"fmt"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"github.com/yanzay/tbot/v2"
 	"os"
+	"runtime/debug"
 )
 
 // SendPushMessage sends a telegram message to the user with given chatID
@@ -34,7 +35,10 @@ func SendAdminPushMessage(message string) {
 
 // SendAdminPushMessageWhenPanic sends a push message on application panic
 func SendAdminPushMessageWhenPanic() {
-	if r := recover(); r != nil {
-		SendAdminPushMessage(fmt.Sprintf("App panicked!\n%s", r))
+	if err := recover(); err != nil {
+		logger.LogWarnf("App panicked!\n%s", err)
+		logger.LogWarn("Stack Trace:")
+		debug.PrintStack()
+		SendAdminPushMessage(fmt.Sprintf("App panicked!\n%s", err))
 	}
 }

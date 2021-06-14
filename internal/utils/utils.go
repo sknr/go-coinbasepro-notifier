@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/logger"
+	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"os"
 )
 
