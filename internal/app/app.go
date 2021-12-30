@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/updater"
 	"github.com/sknr/go-coinbasepro-notifier/internal/app/watcher"
 	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"github.com/sknr/go-coinbasepro-notifier/internal/telegram"
@@ -39,6 +40,7 @@ type App struct {
 	sessionStore  *sessions.CookieStore
 	telegramToken string
 	watchers      map[string]*watcher.CoinbaseProWatcher
+	updater       *updater.Updater
 	bot           *tbot.Server
 	mu            sync.Mutex
 }
@@ -54,6 +56,7 @@ type TelegramUser struct {
 
 func New() *App {
 	a := new(App)
+	a.updater = updater.New()
 
 	authKeyOne := securecookie.GenerateRandomKey(64)
 	encryptionKeyOne := securecookie.GenerateRandomKey(32)
@@ -107,6 +110,7 @@ func (a *App) Start() {
 	go func() {
 		<-termChan
 		a.bot.Stop()
+		a.updater.Stop()
 		logger.LogInfo("SIGTERM received -> Shutdown process initiated")
 		logger.LogErrorIfExists(httpServer.Shutdown(context.Background()))
 	}()
@@ -146,7 +150,7 @@ func (a *App) startWatchers() {
 			continue
 		}
 		// Create the client
-		a.watchers[settings.TelegramID] = watcher.New(settings)
+		a.watchers[settings.TelegramID] = watcher.New(settings, a.updater)
 		// Start watching for user related order updates
 		go a.watchers[settings.TelegramID].Start()
 		// We need to sleep in order to not hit the coinbase pro api limits
@@ -296,7 +300,7 @@ func (a *App) settingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Only start a new watcher if user is active.
 	if userSettings.Active {
-		a.watchers[user.ID] = watcher.New(userSettings)
+		a.watchers[user.ID] = watcher.New(userSettings, a.updater)
 		// Start watching for user related order updates
 		go a.watchers[user.ID].Start()
 	}

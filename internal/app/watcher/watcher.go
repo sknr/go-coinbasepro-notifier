@@ -5,11 +5,11 @@ import (
 	"github.com/preichenberger/go-coinbasepro/v2"
 	"github.com/recws-org/recws"
 	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
+	"github.com/sknr/go-coinbasepro-notifier/internal/app/updater"
 	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"github.com/sknr/go-coinbasepro-notifier/internal/telegram"
 	"github.com/sknr/go-coinbasepro-notifier/internal/utils"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -23,9 +23,7 @@ type CoinbaseProWatcher struct {
 	ws           *recws.RecConn
 	userSettings database.UserSettings // Current user settings
 	channel      channel
-	productIDs   []string
-	updateTicker *time.Ticker
-	mu           sync.RWMutex
+	updater      *updater.Updater
 }
 
 type channel struct {
@@ -33,22 +31,18 @@ type channel struct {
 	terminate chan struct{}
 }
 
-func New(userSettings database.UserSettings) *CoinbaseProWatcher {
+func New(userSettings database.UserSettings, updater *updater.Updater) *CoinbaseProWatcher {
 	c := coinbasepro.NewClient()
 
 	return &CoinbaseProWatcher{
 		client:       c,
 		ws:           nil,
+		updater:      updater,
 		userSettings: userSettings,
 	}
 }
 
 func (w *CoinbaseProWatcher) Start() {
-	w.mu.Lock()
-	w.productIDs = w.getAllAvailableProductIDs()
-	w.mu.Lock()
-	go w.updateProductIDs()
-
 	wsURL := os.Getenv("COINBASE_PRO_WEBSOCKET_URL")
 	if wsURL == "" {
 		wsURL = CoinbaseProWebSocketURL
@@ -82,8 +76,8 @@ func (w *CoinbaseProWatcher) Start() {
 }
 
 func (w *CoinbaseProWatcher) Stop() {
-	w.updateTicker.Stop()
 	close(w.channel.terminate)
+	w.updater.Stop()
 }
 
 func (w *CoinbaseProWatcher) handleWebSocketMessage(message coinbasepro.Message) {
@@ -137,24 +131,7 @@ func (w *CoinbaseProWatcher) handleOrderMessage(message coinbasepro.Message) {
 	w.channel.order <- orderMessage
 }
 
-// getAllAvailableProductIDs returns all available product ids from Coinbase Pro
-func (w *CoinbaseProWatcher) getAllAvailableProductIDs() (result []string) {
-	//TODO: Only fetch all available products once for all watchers and than regularly every hour
-	products, err := w.client.GetProducts()
-	if utils.HasError(err) {
-		logger.LogError(err)
-		return
-	}
-	for _, product := range products {
-		result = append(result, product.ID)
-	}
-	return
-}
-
 func (w *CoinbaseProWatcher) subscribeHandler() error {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
 	var (
 		subscribeMessage       coinbasepro.Message
 		subscribeMessageSigned coinbasepro.SignedMessage
@@ -165,7 +142,7 @@ func (w *CoinbaseProWatcher) subscribeHandler() error {
 	messageChannels = []coinbasepro.MessageChannel{
 		{
 			Name:       ChannelTypeUser,
-			ProductIds: w.productIDs,
+			ProductIds: w.updater.GetProductIDs(),
 		},
 	}
 
@@ -200,19 +177,4 @@ func (w *CoinbaseProWatcher) subscribeHandler() error {
 	}()
 
 	return nil
-}
-
-func (w *CoinbaseProWatcher) updateProductIDs() {
-	if w.updateTicker != nil {
-		w.updateTicker.Stop()
-	}
-	w.updateTicker = time.NewTicker(6 * time.Hour)
-	for range w.updateTicker.C {
-		w.mu.Lock()
-		w.productIDs = w.getAllAvailableProductIDs()
-		if len(w.productIDs) > 0 {
-			logger.LogInfo("Successfully updated product IDs:", w.productIDs)
-		}
-		w.mu.Unlock()
-	}
 }
