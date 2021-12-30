@@ -33,6 +33,7 @@ import (
 const (
 	sessionName      = "coinbasepro-notifier"
 	maxNumberOfUsers = 25 // Maximum number of users supported
+	version          = "v1.0.0"
 )
 
 type App struct {
@@ -340,6 +341,11 @@ func (a *App) startTelegramBot() {
 
 	a.bot.HandleMessage("/start", func(m *tbot.Message) {
 		_, err = c.SendMessage(m.Chat.ID, fmt.Sprintf("Hi %s,\n🤝 welcome to Coinbase Pro Notifier. Please click the setup button below to complete the setup in order to get informed about your Coinbase Pro order updates", m.Chat.FirstName), tbot.OptInlineKeyboardMarkup(loginButton))
+		logger.LogErrorIfExists(err)
+	})
+
+	a.bot.HandleMessage("/version", func(m *tbot.Message) {
+		_, err = c.SendMessage(m.Chat.ID, version)
 		logger.LogErrorIfExists(err)
 	})
 
