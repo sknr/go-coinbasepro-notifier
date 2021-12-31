@@ -6,18 +6,19 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"github.com/NicoNex/echotron/v3"
 	"github.com/foxever/sqlite"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/database"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/updater"
-	"github.com/sknr/go-coinbasepro-notifier/internal/app/watcher"
+	"github.com/sknr/go-coinbasepro-notifier/internal/database"
 	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
 	"github.com/sknr/go-coinbasepro-notifier/internal/telegram"
+	"github.com/sknr/go-coinbasepro-notifier/internal/updater"
 	"github.com/sknr/go-coinbasepro-notifier/internal/utils"
-	"github.com/yanzay/tbot/v2"
+	"github.com/sknr/go-coinbasepro-notifier/internal/watcher"
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
@@ -33,8 +34,10 @@ import (
 const (
 	sessionName      = "coinbasepro-notifier"
 	maxNumberOfUsers = 25 // Maximum number of users supported
-	version          = "v1.0.0"
+	version          = "v1.0.1"
 )
+
+var app *App
 
 type App struct {
 	db            *gorm.DB
@@ -42,7 +45,7 @@ type App struct {
 	telegramToken string
 	watchers      map[string]*watcher.CoinbaseProWatcher
 	updater       *updater.Updater
-	bot           *tbot.Server
+	dsp           *echotron.Dispatcher
 	mu            sync.Mutex
 }
 
@@ -90,14 +93,15 @@ func New() *App {
 	// Create table if not exists
 	logger.LogErrorIfExists(a.db.AutoMigrate(&database.UserSettings{}))
 
-	return a
+	app = a
+	return app
 }
 
 // Start main function to start the coinbase notifier server and
 // the websockets connection for the registered clients
 func (a *App) Start() {
 	// Start telegram bot
-	a.startTelegramBot()
+	a.dsp = createBotDispatcher()
 	// Start websocket connections for each client
 	a.startWatchers()
 	// Create router and setup routes
@@ -110,7 +114,6 @@ func (a *App) Start() {
 	httpServer := &http.Server{Addr: ":8080", Handler: router}
 	go func() {
 		<-termChan
-		a.bot.Stop()
 		a.updater.Stop()
 		logger.LogInfo("SIGTERM received -> Shutdown process initiated")
 		logger.LogErrorIfExists(httpServer.Shutdown(context.Background()))
@@ -129,7 +132,7 @@ func (a *App) createRouter() *mux.Router {
 	router.HandleFunc("/", a.homeHandler)
 	router.HandleFunc("/form/settings", a.settingsHandler)
 	router.HandleFunc("/form/delete-profile", a.deleteHandler)
-	router.HandleFunc("/webhook", a.bot.GetWebhookHandler())
+	router.HandleFunc("/webhook", a.dsp.GetWebhookHandler())
 	router.HandleFunc("/login", a.loginHandler)
 	router.HandleFunc("/logout", a.logoutHandler)
 	// Add static file server
@@ -159,6 +162,10 @@ func (a *App) startWatchers() {
 	}
 }
 
+/************/
+/* Database */
+/************/
+
 // createOrUpdateUser creates a new user or updates a given user if already exists
 func (a *App) createOrUpdateUser(user TelegramUser) {
 	var settings = database.UserSettings{}
@@ -182,6 +189,22 @@ func (a *App) getTotalNumberOfActiveUsers() int {
 	a.db.Raw("SELECT COUNT(telegram_id) FROM user_settings").Scan(&number)
 
 	return number
+}
+
+// getUserSettings get all user settings with specified active status.
+func (a *App) getUserSettings(active bool) []database.UserSettings {
+	var userSettings []database.UserSettings
+	a.db.Where("active = ?", active).Find(&userSettings)
+
+	return userSettings
+}
+
+// getAllUserSettings get all user settings.
+func (a *App) getAllUserSettings() []database.UserSettings {
+	var userSettings []database.UserSettings
+	a.db.Find(&userSettings)
+
+	return userSettings
 }
 
 /************/
@@ -331,47 +354,63 @@ func (a *App) deleteHandler(w http.ResponseWriter, r *http.Request) {
 	a.logoutHandler(w, r)
 }
 
-// startTelegramBot creates a new telegram bot
-func (a *App) startTelegramBot() {
-	a.bot = tbot.New(os.Getenv("TELEGRAM_TOKEN"), tbot.WithWebhookForCustomServer("https://notifier.bot.apperia.de/webhook"))
-	c := a.bot.Client()
+// enableUser sets the active flag to true and starts the watcher
+func (a *App) enableUser(telegramID string) {
+	var userSettings database.UserSettings
+	err := a.db.Where("telegram_id = ?", telegramID).First(&userSettings).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return
+	}
+	userSettings.Active = true
+	a.db.Save(&userSettings)
 
-	loginButton := makeLoginButton()
-	var err error
-
-	a.bot.HandleMessage("/start", func(m *tbot.Message) {
-		_, err = c.SendMessage(m.Chat.ID, fmt.Sprintf("Hi %s,\n🤝 welcome to Coinbase Pro Notifier. Please click the setup button below to complete the setup in order to get informed about your Coinbase Pro order updates", m.Chat.FirstName), tbot.OptInlineKeyboardMarkup(loginButton))
-		logger.LogErrorIfExists(err)
-	})
-
-	a.bot.HandleMessage("/version", func(m *tbot.Message) {
-		_, err = c.SendMessage(m.Chat.ID, version)
-		logger.LogErrorIfExists(err)
-	})
-
-	// Start Telegram bot
-	go func() {
-		logger.LogErrorIfExists(a.bot.Start())
-	}()
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.watchers[telegramID] != nil {
+		// Close the existing client
+		a.watchers[telegramID].Stop()
+	}
+	a.watchers[telegramID] = watcher.New(userSettings, a.updater)
+	// Start watching for user related order updates
+	go a.watchers[telegramID].Start()
 }
 
-/*
- * makeLoginButton creates a telegram login button for easy registering
- * on the webserver via telegram login
- */
-func makeLoginButton() *tbot.InlineKeyboardMarkup {
-	loginButton := tbot.InlineKeyboardButton{
-		Text: "Open setup page",
-		LoginURL: &tbot.LoginURL{
-			URL: "https://notifier.bot.apperia.de/login",
-		},
+// disableUser sets the active flag to false and stops the watcher
+func (a *App) disableUser(telegramID string) {
+	var userSettings database.UserSettings
+	err := a.db.Where("telegram_id = ?", telegramID).First(&userSettings).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return
+	}
+	userSettings.Active = false
+	a.db.Save(&userSettings)
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.watchers[telegramID] != nil {
+		// Close the existing client
+		a.watchers[telegramID].Stop()
+		delete(a.watchers, telegramID)
+	}
+}
+
+// deleteUser deletes an user from database
+func (a *App) deleteUser(telegramID string) {
+	var userSettings database.UserSettings
+	err := a.db.Where("telegram_id = ?", telegramID).First(&userSettings).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return
 	}
 
-	return &tbot.InlineKeyboardMarkup{
-		InlineKeyboard: [][]tbot.InlineKeyboardButton{
-			{loginButton},
-		},
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.watchers[telegramID] != nil {
+		// Close the existing client
+		a.watchers[telegramID].Stop()
+		delete(a.watchers, telegramID)
 	}
+	a.db.Delete(&userSettings)
+	logger.LogInfof("User with ID (%s) has been deleted:\n%#v", telegramID, userSettings)
 }
 
 // getQueryParams retrieves the given parameter list from the query

@@ -2,19 +2,22 @@ package telegram
 
 import (
 	"fmt"
+	"github.com/NicoNex/echotron/v3"
 	"github.com/sknr/go-coinbasepro-notifier/internal/logger"
-	"github.com/yanzay/tbot/v2"
 	"os"
 	"runtime/debug"
+	"strconv"
 )
 
 // SendPushMessage sends a telegram message to the user with given chatID
 func SendPushMessage(chatID, message string) {
 	botToken := os.Getenv("TELEGRAM_TOKEN")
-	tc := tbot.New(botToken).Client()
+	api := echotron.NewAPI(botToken)
+	cID, err := strconv.ParseInt(chatID, 10, 64)
+	logger.LogErrorIfExists(err)
 	if message != "" {
-		_, err := tc.SendMessage(chatID, message)
-		logger.LogErrorIfExists(err)
+		_, err = api.SendMessage(message, cID, nil)
+		logger.LogErrorIfExists(err, chatID)
 	}
 }
 
@@ -26,10 +29,12 @@ func SendAdminPushMessage(message string) {
 		return
 	}
 	botToken := os.Getenv("TELEGRAM_TOKEN")
-	tc := tbot.New(botToken).Client()
+	api := echotron.NewAPI(botToken)
+	cID, err := strconv.ParseInt(adminChatID, 10, 64)
+	logger.LogErrorIfExists(err)
 	if message != "" {
-		_, err := tc.SendMessage(adminChatID, message)
-		logger.LogErrorIfExists(err)
+		_, err = api.SendMessage(message, cID, nil)
+		logger.LogErrorIfExists(err, adminChatID)
 	}
 }
 

@@ -3,6 +3,7 @@ module github.com/sknr/go-coinbasepro-notifier
 go 1.17
 
 require (
+	github.com/NicoNex/echotron/v3 v3.14.0
 	github.com/foxever/sqlite v1.14.3
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
@@ -12,7 +13,6 @@ require (
 	github.com/recws-org/recws v1.3.1
 	github.com/rs/zerolog v1.24.0
 	github.com/shopspring/decimal v1.2.0
-	github.com/yanzay/tbot/v2 v2.2.0
 	gorm.io/gorm v1.22.4
 )
 
@@ -41,6 +41,6 @@ require (
 	modernc.org/token v1.0.0 // indirect
 )
 
-replace github.com/yanzay/tbot/v2 => github.com/sknr/tbot/v2 v2.2.1-0.20210322202531-c00af010167e
-
 replace github.com/recws-org/recws v1.3.1 => github.com/sknr/recws v1.3.2-0.20211215115953-fab3c0cb58fd
+
+replace github.com/NicoNex/echotron/v3 v3.14.0 => github.com/sknr/echotron/v3 v3.14.1-0.20220101130255-38eed5e60b7d
