@@ -82,7 +82,7 @@ func (b *bot) handleMessageData(msg *echotron.Message, data string) {
 		}
 		if data == "" {
 			us := app.getUserSettings(false)
-			_, err = b.SendMessage("Enable user:"+data, b.chatID, &echotron.MessageOptions{
+			_, err = b.SendMessage("Enable user: "+data, b.chatID, &echotron.MessageOptions{
 				ReplyMarkup: createInlineButtons(us),
 			})
 			logger.LogErrorIfExists(err, b.chatID)
@@ -100,7 +100,7 @@ func (b *bot) handleMessageData(msg *echotron.Message, data string) {
 		}
 		if data == "" {
 			us := app.getUserSettings(true)
-			_, err = b.SendMessage("Enable user:"+data, b.chatID, &echotron.MessageOptions{
+			_, err = b.SendMessage("Disable user: "+data, b.chatID, &echotron.MessageOptions{
 				ReplyMarkup: createInlineButtons(us),
 			})
 			logger.LogErrorIfExists(err, b.chatID)
@@ -118,7 +118,7 @@ func (b *bot) handleMessageData(msg *echotron.Message, data string) {
 		}
 		if data == "" {
 			us := app.getAllUserSettings()
-			_, err = b.SendMessage("Delete user:"+data, b.chatID, &echotron.MessageOptions{
+			_, err = b.SendMessage("Delete user: "+data, b.chatID, &echotron.MessageOptions{
 				ReplyMarkup: createInlineButtons(us),
 			})
 			logger.LogErrorIfExists(err, b.chatID)
