@@ -2,6 +2,8 @@ github.com/NicoNex/echotron/v3 v3.14.0 h1:DW/lqCYZ5YV6A00zfKixLqLy9MVxg5eF0KhJxK
 github.com/NicoNex/echotron/v3 v3.14.0/go.mod h1:0PcVrCCcHZx/4XfwbGSkUYgfMkXuehw4xiZpxp1EkDU=
 github.com/NicoNex/echotron/v3 v3.14.1 h1:w12uFVS/twXtEr0hDovclfE23wxevfvL25txDicYWgU=
 github.com/NicoNex/echotron/v3 v3.14.1/go.mod h1:0PcVrCCcHZx/4XfwbGSkUYgfMkXuehw4xiZpxp1EkDU=
+github.com/NicoNex/echotron/v3 v3.14.3 h1:BU5/K8hPHzzrQACPGHTPnGlDBTdXfrxPu1C/NXCeGho=
+github.com/NicoNex/echotron/v3 v3.14.3/go.mod h1:0PcVrCCcHZx/4XfwbGSkUYgfMkXuehw4xiZpxp1EkDU=
 github.com/coreos/go-systemd/v22 v22.3.2/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

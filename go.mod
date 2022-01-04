@@ -3,7 +3,7 @@ module github.com/sknr/go-coinbasepro-notifier
 go 1.17
 
 require (
-	github.com/NicoNex/echotron/v3 v3.14.1
+	github.com/NicoNex/echotron/v3 v3.14.3
 	github.com/foxever/sqlite v1.14.3
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
