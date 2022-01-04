@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/gob"
@@ -34,7 +33,7 @@ import (
 const (
 	sessionName      = "coinbasepro-notifier"
 	maxNumberOfUsers = 25 // Maximum number of users supported
-	version          = "v1.0.1"
+	version          = "v1.0.2"
 )
 
 var app *App
@@ -100,46 +99,39 @@ func New() *App {
 // Start main function to start the coinbase notifier server and
 // the websockets connection for the registered clients
 func (a *App) Start() {
-	// Start telegram bot
-	a.dsp = createBotDispatcher()
-	// Start websocket connections for each client
-	a.startWatchers()
-	// Create router and setup routes
-	router := a.createRouter()
-
 	termChan := make(chan os.Signal, 1) // Channel for terminating the app via os.Interrupt signal
 	// Capture the interrupt signal for app termination handling
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-
-	httpServer := &http.Server{Addr: ":8080", Handler: router}
 	go func() {
 		<-termChan
-		a.updater.Stop()
 		logger.LogInfo("SIGTERM received -> Shutdown process initiated")
-		logger.LogErrorIfExists(httpServer.Shutdown(context.Background()))
+		a.updater.Stop()
+		//logger.LogErrorIfExists(httpServer.Shutdown(context.Background()))
 	}()
-
+	// Start websocket connections for each client
+	a.startWatchers()
+	// Create router and setup routes
 	logger.LogInfo("Starting server at port 8080")
-	err := httpServer.ListenAndServe()
-	if err != nil {
-		logger.LogInfo(err.Error())
-	}
+	a.startServer()
 }
 
-// createRouter creates the router with the necessary routes.
-func (a *App) createRouter() *mux.Router {
+// startServer creates the necessary routes for the http.server and registers the bot listing for updates on the webhook handler
+func (a *App) startServer() {
+	a.dsp = echotron.NewDispatcher(os.Getenv("TELEGRAM_TOKEN"), newBot)
 	router := mux.NewRouter()
 	router.HandleFunc("/", a.homeHandler)
 	router.HandleFunc("/form/settings", a.settingsHandler)
 	router.HandleFunc("/form/delete-profile", a.deleteHandler)
-	router.HandleFunc("/webhook", a.dsp.GetWebhookHandler())
+	router.HandleFunc("/webhook", a.dsp.HandleWebhook)
 	router.HandleFunc("/login", a.loginHandler)
 	router.HandleFunc("/logout", a.logoutHandler)
 	// Add static file server
 	fileServer := http.FileServer(http.Dir("./static"))
 	router.PathPrefix("/").Handler(http.StripPrefix("/", fileServer))
-
-	return router
+	// Set custom http.Handler
+	a.dsp.SetHTTPHandler(router)
+	// Start Webserver with provided webhook
+	logger.LogErrorIfExists(a.dsp.ListenWebhook("https://notifier.bot.apperia.de:8080/webhook"))
 }
 
 // startWatchers creates a websocket connection for each user

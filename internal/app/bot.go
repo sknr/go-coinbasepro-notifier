@@ -145,23 +145,6 @@ func isCommand(message *echotron.Message) bool {
 	return message != nil && strings.HasPrefix(message.Text, "/")
 }
 
-// createBotDispatcher creates a new telegram bot
-func createBotDispatcher() *echotron.Dispatcher {
-	dsp := echotron.NewDispatcher(os.Getenv("TELEGRAM_TOKEN"), newBot)
-	api := echotron.NewAPI(os.Getenv("TELEGRAM_TOKEN"))
-	_, err := api.SetWebhook("https://notifier.bot.apperia.de/webhook", false, nil)
-	logger.LogErrorIfExists(err)
-
-	resp, err := api.GetWebhookInfo()
-	logger.LogErrorIfExists(err)
-	if resp.Ok {
-		logger.LogInfof("Webhookinfo: %v", resp.Result)
-	}
-	//logger.LogError(dsp.Poll())
-	//logger.LogError(dsp.ListenWebhook("https://notifier.bot.apperia.de/webhook"))
-	return dsp
-}
-
 func (b *bot) sendWelcomeMessage(msg *echotron.Message) {
 	_, err := b.SendMessage(fmt.Sprintf("Hi %s,\n🤝 welcome to Coinbase Pro Notifier. Please click the setup button below to complete the setup in order to get informed about your Coinbase Pro order updates", msg.Chat.FirstName), msg.Chat.ID, &echotron.MessageOptions{
 		ReplyMarkup: echotron.InlineKeyboardMarkup{
