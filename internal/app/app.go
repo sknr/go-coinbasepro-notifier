@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/gob"
@@ -99,15 +100,6 @@ func New() *App {
 // Start main function to start the coinbase notifier server and
 // the websockets connection for the registered clients
 func (a *App) Start() {
-	termChan := make(chan os.Signal, 1) // Channel for terminating the app via os.Interrupt signal
-	// Capture the interrupt signal for app termination handling
-	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-termChan
-		logger.LogInfo("SIGTERM received -> Shutdown process initiated")
-		a.updater.Stop()
-		//logger.LogErrorIfExists(httpServer.Shutdown(context.Background()))
-	}()
 	// Start websocket connections for each client
 	a.startWatchers()
 	// Create router and setup routes
@@ -128,8 +120,22 @@ func (a *App) startServer() {
 	// Add static file server
 	fileServer := http.FileServer(http.Dir("./static"))
 	router.PathPrefix("/").Handler(http.StripPrefix("/", fileServer))
-	// Set custom http.Handler
-	a.dsp.SetHTTPHandler(router)
+
+	termChan := make(chan os.Signal, 1) // Channel for terminating the app via os.Interrupt signal
+	// Capture the interrupt signal for app termination handling
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+
+	server := &http.Server{Addr: ":8080", Handler: router}
+	// Set custom http.Server
+	a.dsp.SetHTTPServer(server)
+
+	go func() {
+		<-termChan
+		logger.LogInfo("SIGTERM received -> Shutdown process initiated")
+		a.updater.Stop()
+		logger.LogErrorIfExists(server.Shutdown(context.Background()))
+	}()
+
 	// Start Webserver with provided webhook
 	logger.LogErrorIfExists(a.dsp.ListenWebhook("https://notifier.bot.apperia.de:8080/webhook"))
 }
