@@ -54,6 +54,9 @@ func (b *bot) handleCommand(msg *echotron.Message, data string) {
 		b.handleMessageData(msg, data)
 		return
 	}
+	if msg != nil {
+		logger.LogInfof("[%s:%d] Message: %s", msg.Chat.FirstName, msg.Chat.ID, msg.Text)
+	}
 }
 
 func (b *bot) handleMessage(msg interface{}) {

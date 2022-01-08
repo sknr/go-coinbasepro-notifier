@@ -34,7 +34,7 @@ import (
 const (
 	sessionName      = "coinbasepro-notifier"
 	maxNumberOfUsers = 25 // Maximum number of users supported
-	version          = "v1.0.2"
+	version          = "v1.0.3"
 )
 
 var app *App
@@ -45,7 +45,6 @@ type App struct {
 	telegramToken string
 	watchers      map[string]*watcher.CoinbaseProWatcher
 	updater       *updater.Updater
-	dsp           *echotron.Dispatcher
 	mu            sync.Mutex
 }
 
@@ -109,12 +108,10 @@ func (a *App) Start() {
 
 // startServer creates the necessary routes for the http.server and registers the bot listing for updates on the webhook handler
 func (a *App) startServer() {
-	a.dsp = echotron.NewDispatcher(os.Getenv("TELEGRAM_TOKEN"), newBot)
 	router := mux.NewRouter()
 	router.HandleFunc("/", a.homeHandler)
 	router.HandleFunc("/form/settings", a.settingsHandler)
 	router.HandleFunc("/form/delete-profile", a.deleteHandler)
-	router.HandleFunc("/webhook", a.dsp.HandleWebhook)
 	router.HandleFunc("/login", a.loginHandler)
 	router.HandleFunc("/logout", a.logoutHandler)
 	// Add static file server
@@ -122,12 +119,13 @@ func (a *App) startServer() {
 	router.PathPrefix("/").Handler(http.StripPrefix("/", fileServer))
 
 	termChan := make(chan os.Signal, 1) // Channel for terminating the app via os.Interrupt signal
-	// Capture the interrupt signal for app termination handling
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 
+	// Capture the interrupt signal for app termination handling
+	dsp := echotron.NewDispatcher(os.Getenv("TELEGRAM_TOKEN"), newBot)
 	server := &http.Server{Addr: ":8080", Handler: router}
 	// Set custom http.Server
-	a.dsp.SetHTTPServer(server)
+	dsp.SetHTTPServer(server)
 
 	go func() {
 		<-termChan
@@ -137,7 +135,7 @@ func (a *App) startServer() {
 	}()
 
 	// Start Webserver with provided webhook
-	logger.LogErrorIfExists(a.dsp.ListenWebhook("https://notifier.bot.apperia.de:8080/webhook"))
+	logger.LogErrorIfExists(dsp.ListenWebhook("https://notifier.bot.apperia.de/webhook"))
 }
 
 // startWatchers creates a websocket connection for each user
