@@ -3,7 +3,7 @@ module github.com/sknr/go-coinbasepro-notifier
 go 1.17
 
 require (
-	github.com/NicoNex/echotron/v3 v3.15.1-0.20220107173047-3261c148436b
+	github.com/NicoNex/echotron/v3 v3.16.0
 	github.com/foxever/sqlite v1.14.3
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
@@ -42,5 +42,3 @@ require (
 )
 
 replace github.com/recws-org/recws v1.4.0 => github.com/sknr/recws v1.3.2-0.20211215115953-fab3c0cb58fd
-
-// replace github.com/NicoNex/echotron/v3 v3.15.0 => github.com/sknr/echotron/v3 v3.14.3-0.20220107083719-324e6366c717
