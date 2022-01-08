@@ -134,6 +134,7 @@ func (a *App) startServer() {
 		logger.LogErrorIfExists(server.Shutdown(context.Background()))
 	}()
 
+	logger.LogInfof("Starting telegram bot server at %q", server.Addr)
 	// Start Webserver with provided webhook
 	logger.LogErrorIfExists(dsp.ListenWebhook("https://notifier.bot.apperia.de/webhook"))
 }
