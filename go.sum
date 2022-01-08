@@ -1,3 +1,5 @@
+github.com/NicoNex/echotron/v3 v3.15.1-0.20220107173047-3261c148436b h1:F+h/Ioc96VCCeMjdfAPWGTYeYTJIzCQ8Hg1kGoXzrCA=
+github.com/NicoNex/echotron/v3 v3.15.1-0.20220107173047-3261c148436b/go.mod h1:0PcVrCCcHZx/4XfwbGSkUYgfMkXuehw4xiZpxp1EkDU=
 github.com/coreos/go-systemd/v22 v22.3.2/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -47,8 +49,6 @@ github.com/rs/zerolog v1.26.1 h1:/ihwxqH+4z8UxyI70wM1z9yCvkWcfz/a3mj48k/Zngc=
 github.com/rs/zerolog v1.26.1/go.mod h1:/wSSJWX7lVrsOwlbyTRSOJvqRlc+WjWlfes+CiJ+tmc=
 github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5gKV8=
 github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
-github.com/sknr/echotron/v3 v3.14.3-0.20220107083719-324e6366c717 h1:Ga46UKRykBzRFlXltXbFL0N6HBQrERDbawr1XXx+qHs=
-github.com/sknr/echotron/v3 v3.14.3-0.20220107083719-324e6366c717/go.mod h1:0PcVrCCcHZx/4XfwbGSkUYgfMkXuehw4xiZpxp1EkDU=
 github.com/sknr/recws v1.3.2-0.20211215115953-fab3c0cb58fd h1:5DUC8KJrIf/W6+95gb9kXnOQE0gOIXOLZae4SHatpd4=
 github.com/sknr/recws v1.3.2-0.20211215115953-fab3c0cb58fd/go.mod h1:gRH/uJLMsO7lbcecAB1Im1Zc6eKxs93ftGR0R39QeYA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
